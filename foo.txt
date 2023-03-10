@@ -1,0 +1,12 @@
+function takeBitsFromRight(byte, x, offset = 0) {
+    const mask = (1 << x) - 1; // create bit mask with x ones
+    return (byte >> offset) & mask// perform bitwise AND and left shift operations
+}
+
+
+// Execute instructions
+while (PC < bytes.length) {
+
+
+// const bytes = fs.readFileSync('foo.bin');
+const bytes = fs.readFileSync('mystery-dungeon-v1.0.bin');

@@ -1,0 +1,10 @@
+{
+  "name": "cbdata-rebus-level10",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "cli-interact": "^0.1.9",
+    "readline-sync": "^1.4.10"
+  }
+}
