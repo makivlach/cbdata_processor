@@ -1,5 +1,6 @@
 const fs = require('fs');
-var query = require('cli-interact').getChar;
+const prompt = require('prompt-sync')();
+// var query = require('cli-interact').getChar;
 
 const memory = new Array(256).fill(0);
 // let pc = 550;
@@ -29,8 +30,8 @@ const printMemory = (addr) => {
 
 const readValue = (addr, mode) => {
     if (addr >= 255) {
-       // const input = query()
-       //  writeMemory(addr, input.codePointAt(0))
+       const input = prompt();
+        writeMemory(addr, input.codePointAt(0))
     }
     switch (mode) {
         case immediate:
@@ -71,38 +72,31 @@ const writeValue = (addr, mode, value) => {
 }
 
 const processInstruction = (opcode, p1Mode, p2Mode, p1Value, p2Value) => {
-    let nextPc = 0
-
     switch (opcode) {
         case move:
             const foo = readValue(p2Value, p2Mode)
             writeValue(p1Value, p1Mode, foo);
-            nextPc++
             break;
         case jump:
-            const semiCalculation = (p2Value << 8)
-            pc = p1Value + semiCalculation;
-            // pc++
+            const semiCalculation = (readValue(p2Value, p2Mode) << 8)
+            pc = takeBitsFromRight((readValue(p1Value, p1Mode) + semiCalculation) * 3, 16)
             return
-            break;
         case add:
-            const newValue = p1Value + p2Value
+            const newValue = readValue(p1Value, p1Mode) + readValue(p2Value, p2Mode)
             writeValue(p1Value, p1Mode, newValue);
-            nextPc++
             break;
         case subtract:
-            const diffValue = p1Value - p2Value;
+            const diffValue = readValue(p1Value, p1Mode) - readValue(p2Value, p2Mode)
             writeValue(p1Value, p1Mode, diffValue);
-            nextPc++
             break;
         case skipIfLess:
-            if (p1Value < p2Value) {
-                nextPc += 2;
+            const skipP1 = readValue(p1Value, p1Mode)
+            const skipP2 = readValue(p2Value, p2Mode)
+            if (skipP1 < skipP2) {
+                pc += 3;
             }
             break;
     }
-
-    pc += nextPc;
 }
 
 function takeBitsFromRight(byte, x, offset = 0) {
@@ -110,21 +104,33 @@ function takeBitsFromRight(byte, x, offset = 0) {
     return (byte >> offset) & mask// perform bitwise AND and left shift operations
 }
 
+
 // const data = fs.readFileSync('foo.bin')
 const data = fs.readFileSync('mystery-dungeon-v1.0.bin')
+
+
+function readByte() {
+    const address = pc++
+    return data[takeBitsFromRight(address, 16)];
+}
+
     while(true) {
-        const address = pc * 3
         // First byte - operations
-        const opcode = takeBitsFromRight(data[address], 4);
-        const p1Mode = takeBitsFromRight(data[address], 2, 4);
-        const p2Mode = takeBitsFromRight(data[address], 2, 6)
-        const p1Value = data[address + 1];
-        const p2Value = data[address + 2];
+        const firstByte = readByte()
+        const secondByte = readByte()
+        const thirdByte = readByte()
+
+        const opcode = takeBitsFromRight(firstByte, 4);
+        const p1Mode = takeBitsFromRight(firstByte, 2, 4);
+        const p2Mode = takeBitsFromRight(firstByte, 2, 6)
+
+        const p1Value = secondByte;
+        const p2Value = thirdByte;
 
         processInstruction(opcode, p1Mode, p2Mode, p1Value, p2Value);
 
-        if (address >= data.length) {
-            console.info(`address overflew with address ${address} and data length ${data.length}`)
+        if (pc >= data.length) {
+            console.info(`address overflew with address ${pc} and data length ${data.length}`)
             break;
         }
     }

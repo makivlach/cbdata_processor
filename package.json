@@ -5,6 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "cli-interact": "^0.1.9",
+    "prompt-sync": "^4.2.0",
     "readline-sync": "^1.4.10"
   }
 }
